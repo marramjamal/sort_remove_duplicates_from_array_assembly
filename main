@@ -1,0 +1,219 @@
+org 100h
+
+.data      
+message db 10, 13, "Merged Array = $"
+msg db 10,13, "Remove Duplicated = $" 
+msgg db 10,13, "------------------------- $"
+msg1 db 10,13, "Sorted Array = $"  
+msg2 db 10,13, "Final Array = $"
+array db 2d, 2d, 3d, 8d
+array2 db 3d, 5d, 8d, 0d
+array3 db  ?  
+                                                                                                                                        array4 db ?     
+
+
+
+.code
+MAIN PROC   
+    
+    ;--------------------MERGE ARRAYS and put it in Array3------;
+    mov cl, 8
+    mov bx, offset array     
+    again:
+    
+    mov al, [bx]
+    mov [bx + 8], al
+    
+    inc bx
+    dec cl
+    jnz again
+        
+
+   ;-----------------------Print array3--------------------------;
+    mov ah , 09h
+    mov dx , offset message   
+    int 21h
+    
+    
+    mov cl, 8
+    mov bx, offset array3     
+    
+    again9:  
+    mov dl, [bx]
+    add dl, 30h
+    mov ah, 2
+    int 21h
+    
+    inc bx
+    dec cl
+    jnz again9   
+  
+
+    ;--------------------Change Duplicates with e------------------;
+    
+    mov ch, 8               ;set counter for OuterLoop
+    mov dh, 1               ;counter for both loops
+     
+    mov si , offset array3  ;Put array3 in register si
+    
+    Outerloop:
+    mov cl , ch             ;get counter for InnerLoop from OuterLoop
+    dec cl                  ;-1 cl to point on the next element that ch is pointing to
+    cmp dh, 8               ;break when the pointer reaches the last element in the array
+    je PrintDuplic          
+ 
+    mov bx , si             ;Put index of si of (array3)in register bx
+    mov dl , [si]           ;Put element of array3 in register dl for comparing
+
+    inc bx                  ;+1 bx to put 2nd element of array3 in bx
+    
+    Innerloop:              ;Put element bx in al to start comparing second element of BX with first element SI
+    mov al , [bx]           ;If equal, change to 35h 'e'
+    cmp dl , al
+    je Change                      
+    
+    jmp Increment           ;jump no matter what
+  
+      
+    Change:
+   
+    mov dl , [bx]           ;move element of InnerLoop to register
+    mov dl, 35h             ;then change it to 35h
+    mov [bx], dl            ;then save it in the array
+     
+    
+    Increment: 
+    inc bx                  ;+1 to point on next element
+    dec cl                  ;-1 cl OuterLoop
+    jnz Innerloop           ;jump if not equal zero
+    inc si                  ;+1 to point on next element
+    inc dh                  
+
+
+    dec ch                  
+    
+    jnz Outerloop 
+    
+                 
+    ;-----------------Print Remove Duplicated-------------;
+    
+    PrintDuplic:
+    mov ah , 09h
+    mov dx , offset msg   
+    int 21h
+    
+    mov cl, 8
+    mov bx, offset array3     
+    
+    Again4:  
+    mov dl, [bx]
+    add dl, 30h
+    mov ah, 2
+    int 21h
+    
+    inc bx
+    dec cl
+    jnz Again4 
+   
+    
+    ;----------------------Sort Array------------------;    
+    mov si, 00                ;set register to 0 to point on first element of array
+    mov cx,7                  ;set to 7 cause 8-1 "index of array"                          
+    ;sub cx,1    
+    
+    BubbleSort:               ;cx = si = 0
+    cmp cx, si                ;if equal, increment
+    je cont                   ;first number in array3 in AL         
+    mov al , array3[si]       ;second numb in DL
+    mov dl , array3[si+1] 
+    cmp al , dl               ;if al>dl swap
+    ja swap                   ;+1 si to get next element
+    inc si           
+    jmp BubbleSort
+  
+    
+    swap:
+        mov array3[si+1] , al ;swap between greater numb and smaller
+        mov array3[si] , dl
+        inc si
+        jmp BubbleSort        
+    
+    cont:                   
+        mov si,0              ;set to 0
+        sub cx,1            
+        cmp cx,0
+        jnz BubbleSort 
+        
+    
+    ;----------------------Print Sort Array------------------;       
+    
+       
+    PrintSort:
+    mov ah , 09h
+    mov dx , offset msg1   
+    int 21h
+    
+    mov cl, 8
+    mov bx, offset array3     
+    
+    again45:  
+    mov dl, [bx]
+    add dl, 30h
+    mov ah, 2
+    int 21h
+    
+    inc bx
+    dec cl
+    jnz again45 
+    
+    
+    ;----------------------Remove (e)---------------------;
+    
+    mov ah, 09h
+    mov dx, offset msgg
+    int 21h
+    
+    mov ah , 09h
+    mov dx , offset msg2   
+    int 21h
+
+    
+    mov cl , 8
+    mov bx , offset array3
+    mov dl , [bx] 
+       
+
+
+    RemoveE: 
+    cmp dl , 35h            ;if equal, skip and continue the loop (WITHOUT PRINTING)
+    je continue
+    jmp Print
+        
+    
+    Print:                  ;if equal, skip and continue the loop (WITHOUT PRINTING)
+    mov dl, [bx] 
+    cmp dl, 35h
+    je RemoveE
+    
+    add dl, 30h
+    mov ah, 2
+    int 21h
+    
+    inc bx
+    dec cl
+    jnz Print 
+    
+    jnz RemoveE
+    
+    continue: 
+    inc bx
+    dec cl
+    jnz RemoveE
+     
+
+
+    
+    END MAIN
+
+
+     
